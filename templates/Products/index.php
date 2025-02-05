@@ -16,6 +16,10 @@
                     <th><?= $this->Paginator->sort('quantity') ?></th>
                     <th><?= $this->Paginator->sort('price') ?></th>
                     <th><?= $this->Paginator->sort('status') ?></th>
+                    <th><?= $this->Paginator->sort('deleted') ?></th>
+                    <th><?= $this->Paginator->sort('last_updated') ?></th>
+                    <th><?= $this->Paginator->sort('created') ?></th>
+                    <th><?= $this->Paginator->sort('modified') ?></th>
                     <th class="actions"><?= __('Actions') ?></th>
                 </tr>
             </thead>
@@ -27,6 +31,10 @@
                     <td><?= $this->Number->format($product->quantity) ?></td>
                     <td><?= $this->Number->format($product->price) ?></td>
                     <td><?= h($product->status) ?></td>
+                    <td><?= h($product->deleted) ?></td>
+                    <td><?= h($product->last_updated) ?></td>
+                    <td><?= h($product->created) ?></td>
+                    <td><?= h($product->modified) ?></td>
                     <td class="actions">
                         <?= $this->Html->link(__('View'), ['action' => 'view', $product->id]) ?>
                         <?= $this->Html->link(__('Edit'), ['action' => 'edit', $product->id]) ?>

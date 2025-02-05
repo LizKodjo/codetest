@@ -24,6 +24,8 @@ use Cake\Validation\Validator;
  * @method iterable<\App\Model\Entity\Product>|\Cake\Datasource\ResultSetInterface<\App\Model\Entity\Product> saveManyOrFail(iterable $entities, array $options = [])
  * @method iterable<\App\Model\Entity\Product>|\Cake\Datasource\ResultSetInterface<\App\Model\Entity\Product>|false deleteMany(iterable $entities, array $options = [])
  * @method iterable<\App\Model\Entity\Product>|\Cake\Datasource\ResultSetInterface<\App\Model\Entity\Product> deleteManyOrFail(iterable $entities, array $options = [])
+ *
+ * @mixin \Cake\ORM\Behavior\TimestampBehavior
  */
 class ProductsTable extends Table
 {
@@ -40,6 +42,7 @@ class ProductsTable extends Table
         $this->setTable('products');
         $this->setDisplayField('name');
         $this->setPrimaryKey('id');
+
         $this->addBehavior('Timestamp');
     }
 
@@ -52,13 +55,12 @@ class ProductsTable extends Table
     public function validationDefault(Validator $validator): Validator
     {
         $validator
-            // ->scalar('name')
-            // ->maxLength('name', 50)
+
             // ->requirePresence('name', 'create')
             ->notEmptyString('name', 'Please enter a name')
             ->add('name', 'unique', [
                 'rule' => 'isUnique',
-                'message' => 'This name has already been saved.',
+                'message' => 'This product\'s name has already been saved',
             ])
             ->minLength('name', 3)
             ->maxLength('name', 50);
@@ -67,15 +69,12 @@ class ProductsTable extends Table
             ->integer('quantity')
             ->greaterThanOrEqual('quantity', 0)
             ->lessThanOrEqual('quantity', 1000)
-
-            // ->requirePresence('quantity', 'create')
             ->notEmptyString('quantity');
 
         $validator
             ->decimal('price')
             ->greaterThan('price', 0)
             ->lessThanOrEqual('price', 10000)
-            // ->requirePresence('price', 'create')
             ->notEmptyString('price');
 
         $validator->add('quantity', 'min-quantity', [
@@ -83,10 +82,9 @@ class ProductsTable extends Table
                 if ($context['data']['price'] > 100 && $value < 10) {
                     return false;
                 }
-
                 return true;
             },
-            'message' => 'There should be minimum of 10 items for products with a price over 100',
+            'message' => 'Products over 100 should have at least 10  in stock.',
         ]);
 
         $validator->add('price', 'promo-code', [
@@ -94,12 +92,23 @@ class ProductsTable extends Table
                 if (strpos(strtolower($context['data']['name']), 'promo') !== false && $value >= 50) {
                     return false;
                 }
-
                 return true;
             },
-
-            'message' => 'Products with "promo" code must have a price less than 50.',
+            'message' => 'Products with "promo" code must be under 50.',
         ]);
+
+        $validator
+            ->scalar('status')
+            ->maxLength('status', 20)
+            ->notEmptyString('status');
+
+        $validator
+            ->boolean('deleted')
+            ->notEmptyString('deleted');
+
+        $validator
+            ->dateTime('last_updated')
+            ->notEmptyDateTime('last_updated');
 
         return $validator;
     }

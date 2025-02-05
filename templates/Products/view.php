@@ -38,6 +38,22 @@
                     <th><?= __('Price') ?></th>
                     <td><?= $this->Number->format($product->price) ?></td>
                 </tr>
+                <tr>
+                    <th><?= __('Last Updated') ?></th>
+                    <td><?= h($product->last_updated) ?></td>
+                </tr>
+                <tr>
+                    <th><?= __('Created') ?></th>
+                    <td><?= h($product->created) ?></td>
+                </tr>
+                <tr>
+                    <th><?= __('Modified') ?></th>
+                    <td><?= h($product->modified) ?></td>
+                </tr>
+                <tr>
+                    <th><?= __('Deleted') ?></th>
+                    <td><?= $product->deleted ? __('Yes') : __('No'); ?></td>
+                </tr>
             </table>
         </div>
     </div>
