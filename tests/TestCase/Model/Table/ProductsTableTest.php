@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Test\TestCase\Model\Table;
 
 use App\Model\Table\ProductsTable;
+use Cake\ORM\TableRegistry;
 use Cake\TestSuite\TestCase;
 
 /**
@@ -28,7 +29,7 @@ class ProductsTableTest extends TestCase
     //     'app.Products',
     // ];
 
-    public $fixtures = ['app.Products'];
+    protected array $fixtures = ['app.Products'];
 
     /**
      * setUp method
@@ -39,7 +40,7 @@ class ProductsTableTest extends TestCase
     {
         parent::setUp();
         $config = $this->getTableLocator()->exists('Products') ? [] : ['className' => ProductsTable::class];
-        $this->Products = $this->getTableLocator()->get('Products', $config);
+        $this->Products = TableRegistry::getTableLocator()->get('Products', $config);
     }
 
     /**
@@ -62,20 +63,57 @@ class ProductsTableTest extends TestCase
      */
     public function testValidationDefault(): void
     {
-        // $this->markTestIncomplete('Not implemented yet.');
+        // Check validations
+        $product = $this->Products->newEmptyEntity();
+        $product->name = 'Test Product';
+        $product->quantity = 5;
+        $product->price = 50;
+
+        $errors = $this->Products->getValidator($product);
+        $this->assertEmpty($errors, 'Validation errors should be empty');
+
+        $product->name = 'T';
+        $errors = $this->Products->getValidator($product);
+        $this->assertNotEmpty($errors, 'Product name should be between 3 and 50 characters.');
+
+        $product->name = 'A valid name';
+        $product->price = -1;
+        $errors = $this->Products->getValidator($product);
+        $this->assertNotEmpty($errors, 'Price must be greater than 0.');
+
+        $product->price = 150;
+        $product->quantity = 5;
+        $errors = $this->Products->validate($product);
+        $this->assertNotEmpty($errors, 'Products with price > 100 must have a minimum quantity of 10');
+
+        $product->name = 'promo-code';
+        $product->price = 60;
+        $errors = $this->Products->validate($product);
+        $this->assertNotEmpty($errors, 'Products with "promo" must have a price less than 50');
+    }
+
+    public function testCalculateStatus()
+    {
+        // Status calculation
+        $inStock = $this->Products->calculateStatus(15);
+        $this->assertEquals('in stock', $inStock);
+
+        $lowStock = $this->Products->calculateStatus(5);
+        $this->assertEquals('low stock', $lowStock);
+
+        $outOfStock = $this->Products->calculateStatus(0);
+        $this->assertEquals('out of stock', $outOfStock);
+    }
+
+    public function testSaveProduct()
+    {
         $product = $this->Products->newEntity([
             'name' => 'Test Product',
-            'quantity' => 5,
-            'price' => 20
+            'quantity' => 20,
+            'price' => 50,
         ]);
-        $this->assertEmpty($product->getErrors());
-
-        $product = $this->Products->newEntity([
-            'name' => '',
-            'quantity' => -1,
-            'price' => 20000
-        ]);
-        $this->assertNotEmpty($product->getErrors());
+        $savedProduct = $this->Products->save($product);
+        $this->assertNotEmpty($savedProduct->last_updated, 'last_updated field should be populated');
     }
 
     /**

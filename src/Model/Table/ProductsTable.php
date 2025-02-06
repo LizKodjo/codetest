@@ -121,14 +121,21 @@ class ProductsTable extends Table
     }
 
     // Calculate stock status dynamically
-    public function beforeSave(\Cake\Event\EventInterface $event, \Cake\ORM\Entity $entity, \ArrayObject $options)
+
+    public function calculateStatus($quantity)
     {
-        if ($entity->quantity > 10) {
-            $entity->status = 'In stock';
-        } elseif ($entity->quantity > 0) {
-            $entity->status = 'Low stock';
+        if ($quantity > 10) {
+            return 'in stock';
+        } elseif ($quantity > 0) {
+            return 'low stock';
         } else {
-            $entity->status = 'Out of stock';
+            return 'out of stock';
         }
+    }
+
+    public function saveProduct($entity, $options = [])
+    {
+        $entity->last_updated = new \DateTime();
+        return $this->save($entity, $options);
     }
 }
