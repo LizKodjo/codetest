@@ -95,13 +95,13 @@ class ProductsTableTest extends TestCase
     public function testCalculateStatus()
     {
         // Status calculation
-        $inStock = $this->Products->calculateStatus(15);
+        $inStock = $this->Products->beforeSave(15);
         $this->assertEquals('in stock', $inStock);
 
-        $lowStock = $this->Products->calculateStatus(5);
+        $lowStock = $this->Products->beforeSave(5);
         $this->assertEquals('low stock', $lowStock);
 
-        $outOfStock = $this->Products->calculateStatus(0);
+        $outOfStock = $this->Products->beforeSave(0);
         $this->assertEquals('out of stock', $outOfStock);
     }
 
