@@ -54,47 +54,54 @@ class ProductsTable extends Table
      */
     public function validationDefault(Validator $validator): Validator
     {
+        // Name validations
         $validator
-
-            // ->requirePresence('name', 'create')
-            ->notEmptyString('name', 'Please enter a name')
-            ->add('name', 'unique', [
-                'rule' => 'isUnique',
-                'message' => 'This product\'s name has already been saved',
-            ])
+            ->scalar('name')
             ->minLength('name', 3)
-            ->maxLength('name', 50);
-
+            ->maxLength('name', 50)
+            ->requirePresence('name', 'create')
+            ->add('name', 'unique', [
+                'rule' => 'validateUnique',
+                'provider' => 'table',
+                'message' => 'This product has already been saved.'
+            ])
+            ->notEmptyString('name', 'Please enter a name');
+        // Quantity validations
         $validator
             ->integer('quantity')
             ->greaterThanOrEqual('quantity', 0)
             ->lessThanOrEqual('quantity', 1000)
             ->notEmptyString('quantity');
-
+        // Price validations
         $validator
             ->decimal('price')
             ->greaterThan('price', 0)
             ->lessThanOrEqual('price', 10000)
+            ->requirePresence('price', 'create')
             ->notEmptyString('price');
 
+        // check number of items is more than 10 if product costs more than 100
         $validator->add('quantity', 'min-quantity', [
             'rule' => function ($value, $context) {
                 if ($context['data']['price'] > 100 && $value < 10) {
                     return false;
                 }
+
                 return true;
             },
-            'message' => 'Products over 100 should have at least 10  in stock.',
+            'message' => 'Products over 100 must have at least 10 items',
         ]);
 
+        // Promo validation
         $validator->add('price', 'promo-code', [
             'rule' => function ($value, $context) {
                 if (strpos(strtolower($context['data']['name']), 'promo') !== false && $value >= 50) {
                     return false;
                 }
+
                 return true;
             },
-            'message' => 'Products with "promo" code must be under 50.',
+            'message' => 'Products with "promo" code should have a price under 50.',
         ]);
 
         $validator
@@ -111,5 +118,17 @@ class ProductsTable extends Table
             ->notEmptyDateTime('last_updated');
 
         return $validator;
+    }
+
+    // Calculate stock status dynamically
+    public function beforeSave(\Cake\Event\EventInterface $event, \Cake\ORM\Entity $entity, \ArrayObject $options)
+    {
+        if ($entity->quantity > 10) {
+            $entity->status = 'In stock';
+        } elseif ($entity->quantity > 0) {
+            $entity->status = 'Low stock';
+        } else {
+            $entity->status = 'Out of stock';
+        }
     }
 }

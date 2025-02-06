@@ -11,6 +11,7 @@ use Cake\TestSuite\TestCase;
  */
 class ProductsTableTest extends TestCase
 {
+
     /**
      * Test subject
      *
@@ -23,16 +24,18 @@ class ProductsTableTest extends TestCase
      *
      * @var list<string>
      */
-    protected array $fixtures = [
-        'app.Products',
-    ];
+    // protected array $fixtures = [
+    //     'app.Products',
+    // ];
+
+    public $fixtures = ['app.Products'];
 
     /**
      * setUp method
      *
      * @return void
      */
-    protected function setUp(): void
+    public function setUp(): void
     {
         parent::setUp();
         $config = $this->getTableLocator()->exists('Products') ? [] : ['className' => ProductsTable::class];
@@ -58,6 +61,30 @@ class ProductsTableTest extends TestCase
      * @uses \App\Model\Table\ProductsTable::validationDefault()
      */
     public function testValidationDefault(): void
+    {
+        // $this->markTestIncomplete('Not implemented yet.');
+        $product = $this->Products->newEntity([
+            'name' => 'Test Product',
+            'quantity' => 5,
+            'price' => 20
+        ]);
+        $this->assertEmpty($product->getErrors());
+
+        $product = $this->Products->newEntity([
+            'name' => '',
+            'quantity' => -1,
+            'price' => 20000
+        ]);
+        $this->assertNotEmpty($product->getErrors());
+    }
+
+    /**
+     * Test beforeSave method
+     *
+     * @return void
+     * @uses \App\Model\Table\ProductsTable::beforeSave()
+     */
+    public function testBeforeSave(): void
     {
         $this->markTestIncomplete('Not implemented yet.');
     }

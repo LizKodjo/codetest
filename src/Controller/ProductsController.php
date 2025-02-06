@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Controller\AppController;
+use Cake\Datasource\Exception\RecordNotFoundException;
+
 /**
  * Products Controller
  *
@@ -17,26 +20,23 @@ class ProductsController extends AppController
      */
     public function index()
     {
-        // $query = $this->Products->find();
+        $statusFilter = $this->request->getQuery('status');
+        $searchTerm = $this->request->getQuery('search');
 
-        $this->paginate = [
-            'conditions' => ['Products.deleted' => 0],
-            'limit' => 10,
-        ];
+        $query = $this->Products->find('all')
+            ->where(['deleted' => false]);
 
-        if ($this->request->is('get')) {
-            $status = $this->request->getQuery('status');
-            $search = $this->request->getQuery('search');
-            if ($status) {
-                $this->paginate['conditions']['Products.status'] = $status;
-            }
-            if ($search) {
-                $this->paginate['conditions']['Products.name LIKE'] = '%' . $search . '%';
-            }
+        if ($statusFilter) {
+            $query->where(['status' => $statusFilter]);
         }
 
-        // $products = $this->paginate($query);
-        $products = $this->paginate($this->Products);
+        if ($searchTerm) {
+            $query->andWhere(['name LIKE' => "%$searchTerm%"]);
+        }
+
+        // Apply filters
+
+        $products = $this->paginate($query);
         $this->set(compact('products'));
     }
 
@@ -65,6 +65,7 @@ class ProductsController extends AppController
             $product = $this->Products->patchEntity($product, $this->request->getData());
             if ($this->Products->save($product)) {
                 $this->Flash->success(__('The product has been saved.'));
+
                 return $this->redirect(['action' => 'index']);
             }
             $this->Flash->error(__('The product could not be saved. Please, try again.'));
@@ -79,18 +80,26 @@ class ProductsController extends AppController
      * @return \Cake\Http\Response|null|void Redirects on successful edit, renders view otherwise.
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
      */
-
     public function edit($id = null)
     {
+        try {
+            $product = $this->Products->get($id);
+        } catch (RecordNotFoundException $e) {
+            $this->Flash->error('Product not found');
+
+            return $this->redirect(['action' => 'index']);
+        }
+
         // $product = $this->Products->get($id, contain: []);
-        $product = $this->Products->get($id);
-        if ($this->request->is(['patch', 'post', 'put'])) {
+        // if ($this->request->is(['patch', 'post', 'put'])) {
+        if ($this->request->is(['post', 'put'])) {
             $product = $this->Products->patchEntity($product, $this->request->getData());
             if ($this->Products->save($product)) {
-                $this->Flash->success(__('The product has been updated.'));
+                $this->Flash->success(__('The product has been saved.'));
+
                 return $this->redirect(['action' => 'index']);
             }
-            $this->Flash->error(__('The product was not updated. Please, try again.'));
+            $this->Flash->error(__('The product could not be saved. Please, try again.'));
         }
         $this->set(compact('product'));
     }
@@ -102,22 +111,19 @@ class ProductsController extends AppController
      * @return \Cake\Http\Response|null Redirects to index.
      * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
      */
-    public function delete($id = null)
+    public function delete($id)
     {
-        $this->request->allowMethod(['post', 'delete']);
-        $product = $this->Products->get($id);
-        // Soft delete
-        $product->deleted = true;
-        if ($this->Products->save($product)) {
-            $this->Flash->success(__('Product has been deleted.'));
-        } else {
-            $this->Flash->error(__('Unable to delete product'));
+        try {
+            $product = $this->Products->get($id);
+            $product->deleted = true;
+            if ($this->Products->save($product)) {
+                $this->Flash->success('Product has been deleted.');
+            } else {
+                $this->Flash->error('Unable to delete the product.');
+            }
+        } catch (RecordNotFoundException $e) {
+            $this->Flash->error('Product not found.');
         }
-        // if ($this->Products->delete($product)) {
-        //     $this->Flash->success(__('The product has been deleted.'));
-        // } else {
-        //     $this->Flash->error(__('The product could not be deleted. Please, try again.'));
-        // }
 
         return $this->redirect(['action' => 'index']);
     }

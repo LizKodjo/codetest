@@ -7,6 +7,14 @@
 <div class="products index content">
     <?= $this->Html->link(__('New Product'), ['action' => 'add'], ['class' => 'button float-right']) ?>
     <h3><?= __('Products') ?></h3>
+
+    <!-- Search box -->
+    <?= $this->Form->create(null, ['type' => 'get']) ?>
+    <?= $this->Form->control('search', ['label' => 'Search by name']) ?>
+    <?= $this->Form->control('status', ['label' => 'Status', 'options' => ['in stock' => 'In Stock', 'low stock' => 'Low Stock', 'out of stock' => 'Out of Stock']]) ?>
+    <?= $this->Form->button('Search') ?>
+    <?= $this->Form->end() ?>
+
     <div class="table-responsive">
         <table>
             <thead>
@@ -25,22 +33,22 @@
             </thead>
             <tbody>
                 <?php foreach ($products as $product): ?>
-                <tr>
-                    <td><?= $this->Number->format($product->id) ?></td>
-                    <td><?= h($product->name) ?></td>
-                    <td><?= $this->Number->format($product->quantity) ?></td>
-                    <td><?= $this->Number->format($product->price) ?></td>
-                    <td><?= h($product->status) ?></td>
-                    <td><?= h($product->deleted) ?></td>
-                    <td><?= h($product->last_updated) ?></td>
-                    <td><?= h($product->created) ?></td>
-                    <td><?= h($product->modified) ?></td>
-                    <td class="actions">
-                        <?= $this->Html->link(__('View'), ['action' => 'view', $product->id]) ?>
-                        <?= $this->Html->link(__('Edit'), ['action' => 'edit', $product->id]) ?>
-                        <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $product->id], ['confirm' => __('Are you sure you want to delete # {0}?', $product->id)]) ?>
-                    </td>
-                </tr>
+                    <tr>
+                        <td><?= $this->Number->format($product->id) ?></td>
+                        <td><?= h($product->name) ?></td>
+                        <td><?= $this->Number->format($product->quantity) ?></td>
+                        <td><?= $this->Number->format($product->price) ?></td>
+                        <td><?= h($product->status) ?></td>
+                        <td><?= h($product->deleted) ?></td>
+                        <td><?= h($product->last_updated) ?></td>
+                        <td><?= h($product->created) ?></td>
+                        <td><?= h($product->modified) ?></td>
+                        <td class="actions">
+                            <?= $this->Html->link(__('View'), ['action' => 'view', $product->id]) ?>
+                            <?= $this->Html->link(__('Edit'), ['action' => 'edit', $product->id]) ?>
+                            <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $product->id], ['confirm' => __('Are you sure you want to delete # {0}?', $product->id)]) ?>
+                        </td>
+                    </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
@@ -53,6 +61,7 @@
             <?= $this->Paginator->next(__('next') . ' >') ?>
             <?= $this->Paginator->last(__('last') . ' >>') ?>
         </ul>
-        <p><?= $this->Paginator->counter(__('Page {{page}} of {{pages}}, showing {{current}} record(s) out of {{count}} total')) ?></p>
+        <p><?= $this->Paginator->counter(__('Page {{page}} of {{pages}}, showing {{current}} record(s) out of {{count}} total')) ?>
+        </p>
     </div>
 </div>
